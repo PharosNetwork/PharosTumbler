@@ -1,0 +1,281 @@
+namespace consensus_spec.ssz_types;
+
+alias SpecVersion = uint16;
+
+alias Bytes32 = [uint8:32];
+alias Hash32 = [uint8:32];
+
+alias NodeId = [byte:32];
+alias ReadableNodeId = [uint8:16];
+
+alias StorageKey = [uint8:1-256];
+
+alias BlockNumber = uint64;
+alias SequenceNumber = uint64;
+// TODO(v13): change to uint32, requires compatibility upgrade
+alias Round = uint8;
+
+alias TxHash = [uint8:32];
+alias Bool = uint8;
+alias Enum8 = uint8;
+
+alias SenderTag = uint8;
+alias Name = [uint8:1-64];
+
+alias PublicKey = [uint8:0-1024];
+alias U128 = [uint8:16];
+
+container ValMessage {
+    seq: SequenceNumber;
+    proposer_id: NodeId;
+    timestamp: uint64;
+    payload: [byte:0-16777216];
+    hash: [byte:0-32];
+    signature: [byte:0-4096];
+    encoded_stable_proof: [[byte:0-4096]:0-1024];
+    encoded_block_checkpoint_info: [[byte:0-4096]:0-1024];  // valid msg must include n-9
+    epoch_number: uint64(version_after: 7);
+}
+
+container ValReceiptMessage {
+    seq: SequenceNumber;
+    proposer_id: NodeId;
+    epoch_number: uint64(version_after: 7);
+}
+
+container BvalMessage {
+    seq: SequenceNumber;
+    proposer_id: NodeId;
+    round: Round;
+    hash: [byte:0-32];
+    signature: [byte:0-4096];
+    val_exist: Bool;
+    epoch_number: uint64(version_after: 7);
+}
+
+container BvalReceiptMessage {
+    seq: SequenceNumber;
+    proposer_id: NodeId;
+    round: Round;
+    hash: [byte:0-32];
+    epoch_number: uint64(version_after: 7);
+}
+
+container AggregateSignature {
+    bitmap: [byte:0-1024];
+    aggr_sig: [byte:0-4096];
+}
+
+container AggregatedBvalMessage {
+    seq: SequenceNumber;
+    proposer_id: NodeId;
+    round: Round;
+    hash: [byte:0-32];
+    proof: AggregateSignature;
+}
+
+container AggregatedBvalReceiptMessage {
+    seq: SequenceNumber;
+    proposer_id: NodeId;
+    round: Round;
+}
+
+container AggrAuxInfo {
+    hash: [byte:0-32];
+    aux_proof: AggregateSignature;
+    aggr_sig: AggregateSignature;
+}
+
+container AggrPromInfo {
+    hash: [byte:0-32];
+    prom_proof: AggregateSignature;
+    aggr_sig: AggregateSignature;
+}
+
+container AggregatedMainVoteMessage {
+    seq: SequenceNumber;
+    proposer_id: NodeId;
+    round: Round;
+    aggr_aux_infos: [AggrAuxInfo:0-2];
+    aggr_prom_infos: [AggrPromInfo:0-2];
+}
+
+container AggregatedMainVoteReceiptMessage {
+    seq: SequenceNumber;
+    proposer_id: NodeId;
+    round: Round;
+}
+
+container Signature {
+    node_id: NodeId;
+    signature: [byte:0-4096];
+}
+
+container AuxMessage {
+    seq: SequenceNumber;
+    proposer_id: NodeId;
+    round: Round;
+    hash: [byte:0-32];
+    bval_signatures_DEPRECATED: [Signature:0-4096];
+    signature: [byte:0-4096];
+    aux_proof: AggregateSignature;
+}
+
+container AuxReceiptMessage {
+    seq: SequenceNumber;
+    proposer_id: NodeId;
+    round: Round;
+}
+
+container PromMessage {
+    seq: SequenceNumber;
+    proposer_id: NodeId;
+    round: Round;
+    hash: [byte:0-32];
+    signature: [byte:0-4096];
+    bval_signatures_DEPRECATED: [Signature:0-4096];
+    prom_proof: AggregateSignature;
+}
+
+container PromReceiptMessage {
+    seq: SequenceNumber;
+    proposer_id: NodeId;
+    round: Round;
+}
+
+container PromCertificateMessage_DEPRECATED {
+    seq: SequenceNumber;
+    proposer_id: NodeId;
+    round: Round;
+    hash: [byte:0-32];
+    prom_signatures: [Signature:0-4096];
+}
+
+container PromCertificateReceiptMessage_DEPRECATED {
+    seq: SequenceNumber;
+    proposer_id: NodeId;
+    round: Round;
+}
+
+container PassMessage {
+    seq: SequenceNumber;
+    endorsed: [NodeId:0-4096];
+    encoded_stable_proof: [[byte:0-4096]:0-1024];
+    encoded_block_checkpoint_info: [[byte:0-4096]:0-1024];  // valid msg must include n-9
+}
+
+container PassReceiptMessage {
+    seq: SequenceNumber;
+}
+
+container SkipMessage {
+    seq: SequenceNumber;
+    proposer_id: NodeId;
+    signature: [byte:0-4096];
+    encoded_stable_proof: [[byte:0-4096]:0-1024];
+    encoded_block_checkpoint_info: [[byte:0-4096]:0-1024];
+}
+
+container SkipReceiptMessage {
+    seq: SequenceNumber;
+    proposer_id: NodeId;
+}
+
+container ForwardSkipMessage {
+    seq: SequenceNumber;
+    skip_signatures: [Signature:0-4096];
+    encoded_stable_proof: [[byte:0-4096]:0-1024];
+    encoded_block_checkpoint_info: [[byte:0-4096]:0-1024];
+}
+container ForwardSkipReceiptMessage {
+    seq: SequenceNumber;
+}
+
+container TermMessage_DEPRECATED {
+    seq: SequenceNumber;
+    digest: [byte:0-32];
+    random_seed_share: [byte:0-4096];
+}
+
+container TermReceiptMessage {
+    seq: SequenceNumber;
+}
+
+container ProposalRequestKey {
+    proposer_id: NodeId;
+    hash: [byte:0-32];
+}
+
+container RequestProposalMessage {
+    seq: SequenceNumber;
+    keys: [ProposalRequestKey:0-4096];
+}
+
+container ResponseProposalMessage {
+    vals: [ValMessage#s:0-4096];
+}
+
+container DKGFinishProof_DEPRECATED {
+    epoch: uint64;
+	sigs: [Signature:0-4096];
+}
+
+container DKGFinalStatusMessage_DEPRECATED {
+	epoch: uint64;
+	qual_set: [uint32:0-4096]; // only need to send the node's dkg_index
+	hash: [byte:0-32];
+	signature: [byte:0-4096];
+}
+
+container DKGFinalStatusReceiptMessage_DEPRECATED {
+    seq: SequenceNumber;
+    proposer_id: NodeId;
+}
+
+container DKGAlreadyFinishMessage_DEPRECATED {
+	dkg_finish_proof: DKGFinishProof_DEPRECATED;
+	qual_set: [uint32:0-4096];
+	share_and_proofs_set: [[byte:0-4096]:0-4096]; // all shares_and_proofs corresponding to qual_set
+}
+
+union ConsensusMessage {
+    ValData : ValMessage#s;
+    BvalData : BvalMessage#s;
+    AuxData : AuxMessage#s;
+    PromData : PromMessage#s;
+    PromCertificateData_DEPRECATED : PromCertificateMessage_DEPRECATED#s;
+    PassData : PassMessage#s;
+    SkipData : SkipMessage#s;
+    TermData_DEPRECATED : TermMessage_DEPRECATED#s;
+    DKGFinalStatusData_DEPRECATED : DKGFinalStatusMessage_DEPRECATED#s;
+    AggregatedBvalData : AggregatedBvalMessage#s;
+    AggregatedMainVoteData : AggregatedMainVoteMessage#s;
+    ValReceiptData : ValReceiptMessage#s;
+    BvalReceiptData : BvalReceiptMessage#s;
+    AuxReceiptData : AuxReceiptMessage#s;
+    PromReceiptData : PromReceiptMessage#s;
+    PromCertificateReceiptData_DEPRECATED : PromCertificateReceiptMessage_DEPRECATED#s;
+    PassReceiptData : PassReceiptMessage#s;
+    SkipReceiptData : SkipReceiptMessage#s;
+    TermReceiptData : TermReceiptMessage#s;
+    DKGFinalStatusReceiptData_DEPRECATED : DKGFinalStatusReceiptMessage_DEPRECATED#s;
+    AggregatedBvalReceiptData : AggregatedBvalReceiptMessage#s;
+    AggregatedMainVoteReceiptData : AggregatedMainVoteReceiptMessage#s;
+    RequestProposalData : RequestProposalMessage#s;
+    ResponseProposalData : ResponseProposalMessage#s;
+    DKGAlreadyFinishData_DEPRECATED : DKGAlreadyFinishMessage_DEPRECATED#s;
+    ForwardSkipData : ForwardSkipMessage#s;
+    ForwardSkipReceiptData : ForwardSkipReceiptMessage#s;
+}
+
+container Proposal {
+    proposer: [uint8:32];
+    timestamp: uint64;
+    data: [uint8:0-16777216];
+}
+
+container VoteStatus {
+	is_consensused	:Bool;
+	proposal		:Proposal#s;
+	voters			:[[uint8:32]:0-4096]; // nodes that endorsed and have payload
+}

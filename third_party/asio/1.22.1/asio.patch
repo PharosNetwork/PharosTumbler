@@ -1,0 +1,12 @@
+diff -ruN include/asio/detail/memory.hpp include/asio/detail/memory.hpp
+--- include/asio/detail/memory.hpp	2022-03-04 17:40:49.000000000 +0800
++++ include/asio/detail/memory.hpp	2022-04-02 20:45:47.235700519 +0800
+@@ -85,7 +85,7 @@
+ #if defined(ASIO_HAS_STD_ALIGNED_ALLOC) && defined(ASIO_HAS_ALIGNOF)
+   align = (align < ASIO_DEFAULT_ALIGN) ? ASIO_DEFAULT_ALIGN : align;
+   size = (size % align == 0) ? size : size + (align - size % align);
+-  void* ptr = std::aligned_alloc(align, size);
++  void* ptr = ::aligned_alloc(align, size);
+   if (!ptr)
+   {
+     std::bad_alloc ex;

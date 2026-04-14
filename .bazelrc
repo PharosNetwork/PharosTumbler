@@ -1,0 +1,6 @@
+build --action_env=BAZEL_CXXOPTS="-std=c++20"
+build --action_env=BAZEL_LINKOPTS=-rdynamic
+build --action_env=BAZEL_LINKLIBS=-l%:libstdc++.a:-l%:libgcc.a
+build --verbose_failures
+build --stamp
+build --incompatible_disallow_empty_glob=false

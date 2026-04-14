@@ -1,0 +1,4 @@
+--- /dev/null
++++ b/MODULE.bazel
+@@ -0,0 +1 @@
++module(name = "boringssl")

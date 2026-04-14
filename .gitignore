@@ -1,0 +1,25 @@
+.vscode/
+MODULE.bazel.lock
+bazel-*
+*.o
+consensus/schema/__pycache__
+__pycache__/
+*.log
+**/log/
+!src/consensus/libraries/log/
+!src/consensus/libraries/log/**
+test_local_db
+
+# Local CI / coverage smoke (lcov, gtest-parallel, misspell download)
+*.info
+/build/
+cobertura.xml
+format.txt
+sync_bazel_local_cache.py
+/lcov_cobertura.py
+/misspell
+misspell_result.txt
+mycpplint_consensus.txt
+stat_mycpplint_consensus.txt
+result
+test_consensus.xml

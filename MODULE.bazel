@@ -1,0 +1,104 @@
+###############################################################################
+# - Top-level bazel_dep lists only what this repo needs directly or to anchor the
+#   SSL/gRPC stack (grpc pulls protobuf/abseil/etc. transitively).
+# - deps.bzl / third_party/deps.bzl mirror old WORKSPACE (no wabt/solc/cubenet/…).
+# - cobre + pamir use_repo lists follow pamir’s module extension; do not delete
+#   entries unless pamir upstream narrows what third_party_deps registers.
+###############################################################################
+
+module(
+    name = "consensus_spec",
+    version = "1.0",
+)
+
+# Used by BUILD files / bazel/BUILD (@platforms).
+bazel_dep(name = "rules_cc", version = "0.1.1")
+bazel_dep(name = "rules_foreign_cc", version = "0.10.1")
+bazel_dep(name = "platforms", version = "0.0.11")
+bazel_dep(name = "nlohmann_json", version = "3.11.3")
+
+# Anchors boringssl in the module graph so archive_override (Tongsuo) applies.
+# Protobuf / Abseil / rules_proto / OpenTelemetry are not declared here; they come
+# transitively from pamir_framework / cobre / gRPC. Re-add explicit bazel_dep pins
+# if you need reproducible versions.
+bazel_dep(name = "grpc", version = "1.69.0", repo_name = "com_github_grpc_grpc")
+
+single_version_override(module_name = "rules_cc", version = "0.0.17")
+
+# Tongsuo instead of BoringSSL.
+archive_override(
+    module_name = "boringssl",
+    build_file = "@consensus_spec//third_party/tongsuo:tongsuo.BUILD",
+    strip_prefix = "Tongsuo-8.4.0",
+    sha256 = "PLACEHOLDER",
+    patches = ["@consensus_spec//third_party/tongsuo:tongsuo_module.patch"],
+    patch_args = ["-p1"],
+    urls = [
+        # TODO: replace with public mirror URL for Tongsuo-8.4.0.zip
+        "https://github.com/Tongsuo-Project/Tongsuo/archive/refs/tags/8.4.0.zip",
+    ],
+)
+
+# -----------------------------------------------------------------------------
+# Git deps: cpp_thirdparty; cppssz tag pinned in //third_party/cppssz/cppssz.bzl (@cppssz).
+# -----------------------------------------------------------------------------
+deps = use_extension("//:deps.bzl", "deps")
+use_repo(deps, "PLACEHOLDER_cpp_thirdparty")
+
+# -----------------------------------------------------------------------------
+# Cobre (jsoncpp / gflags / spdlog 1.7 / boost, …).
+# -----------------------------------------------------------------------------
+bazel_dep(name = "cobre")
+git_override(
+    module_name = "cobre",
+    # TODO: replace with public repository URL for cobre
+    remote = "PLACEHOLDER",
+    branch = "PLACEHOLDER",
+)
+
+cobre_deps = use_extension("@cobre//third_party:deps.bzl", "third_party_deps")
+use_repo(cobre_deps, "PLACEHOLDER_cpp_thirdparty_boost_1_67_0")
+use_repo(cobre_deps, "PLACEHOLDER_cpp_thirdparty_jsoncpp_1_9_2")
+use_repo(cobre_deps, "PLACEHOLDER_cpp_thirdparty_gflag_2_2_2")
+use_repo(cobre_deps, "PLACEHOLDER_cpp_thirdparty_spdlog_1_7_0")
+
+# -----------------------------------------------------------------------------
+# Pamir storageservice stack — keep use_repo in sync with pamir’s third_party_deps.
+# -----------------------------------------------------------------------------
+bazel_dep(name = "pamir_framework")
+git_override(
+    module_name = "pamir_framework",
+    # TODO: replace with public repository URL for pamir-framework
+    remote = "PLACEHOLDER",
+    branch = "PLACEHOLDER",
+)
+
+pamir_deps = use_extension("@pamir_framework//third_party:third_party.bzl", "third_party_deps")
+use_repo(pamir_deps, "com_github_google_snappy")
+use_repo(pamir_deps, "PLACEHOLDER_cpp_thirdparty_lz4_1_9_2")
+use_repo(pamir_deps, "curl")
+use_repo(pamir_deps, "PLACEHOLDER_cpp_thirdparty_etcd_cpp_apiv3")
+use_repo(pamir_deps, "PLACEHOLDER_cpp_thirdparty_libyajl")
+use_repo(pamir_deps, "PLACEHOLDER_cpp_thirdparty_cetcd")
+use_repo(pamir_deps, "PLACEHOLDER_cpp_thirdparty_libcurl")
+use_repo(pamir_deps, "cityhash_for_mygrid")
+use_repo(pamir_deps, "PLACEHOLDER_cpp_thirdparty_flatbuffers_23_1_21")
+use_repo(pamir_deps, "PLACEHOLDER_cpp_thirdparty_log4cplus_1_2_1")
+use_repo(pamir_deps, "PLACEHOLDER_cpp_thirdparty_rocksdb_8_11_4")
+use_repo(pamir_deps, "PLACEHOLDER_cpp_thirdparty_gtest_1_8_1")
+use_repo(pamir_deps, "PLACEHOLDER_cpp_thirdparty_secp256k1_bulletproofs")
+use_repo(pamir_deps, "PLACEHOLDER_cpp_thirdparty_zlib_1_2_11")
+use_repo(pamir_deps, "PLACEHOLDER_cpp_thirdparty_benchmark_1_5_0")
+use_repo(pamir_deps, "PLACEHOLDER_cpp_thirdparty_libunwind_1_8_1")
+use_repo(pamir_deps, "PLACEHOLDER_cpp_thirdparty_gperftools_2_7")
+
+# -----------------------------------------------------------------------------
+# This repo only: asio, gtest 1.10, compdb, tongsuo, kuafu, cppssz + nlohmann zip. (spdlog 1.7 via cobre.)
+# -----------------------------------------------------------------------------
+third_party_deps = use_extension("//third_party:deps.bzl", "third_party_deps")
+use_repo(third_party_deps, "asio_1_22_1")
+use_repo(third_party_deps, "PLACEHOLDER_cpp_thirdparty_googletest_1_10_0")
+use_repo(third_party_deps, "com_grail_bazel_compdb")
+use_repo(third_party_deps, "PLACEHOLDER_cpp_thirdparty_tongsuo_8_4_0")
+use_repo(third_party_deps, "kuafu_official_release")
+use_repo(third_party_deps, "cppssz")
